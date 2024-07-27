@@ -1,12 +1,12 @@
+require('dotenv').config();
 const express = require('express');
-const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
- res.send('Hello World');
-});
+app.use(bodyParser.json());
+app.use('/api/envelopes', envelopeRoutes);
 
 app.listen(PORT, () => {
  console.log(`Server listening on PORT: ${PORT}`);
