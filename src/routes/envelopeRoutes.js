@@ -4,7 +4,8 @@ const {
  getAllEnvelopes,
  getEnvelopeById,
  updateEnvelope,
- deleteEnvelope } = require('../controllers/envelopeController');
+ deleteEnvelope, 
+ transferBudget } = require('../controllers/envelopeController');
 
 const router = express.Router();
 
@@ -18,5 +19,7 @@ router.get('/:id', getEnvelopeById);
 router.put('/:id', updateEnvelope);
 // Route to delete an especific envelope
 router.delete('/:id', deleteEnvelope);
+// Route to transfer from one envelope to another
+router.post('/transfer/:from/:to', transferBudget);
 
 module.exports = router;

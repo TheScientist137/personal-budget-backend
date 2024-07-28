@@ -1,3 +1,4 @@
+const { query } = require('express');
 const pool = require('../config/db');
 
 // POST - Create new envelope
@@ -101,4 +102,50 @@ const deleteEnvelope = async (req, res) => {
  }
 }
 
-module.exports = { createEnvelope, getAllEnvelopes, getEnvelopeById, updateEnvelope, deleteEnvelope };
+// POST - Transfer data from one budget to another
+const transferBudget = async (req, res) => {
+  const { from, to } = req.params;
+  const { amount } = req.body;
+  
+  const transferAmount = parseFloat(amount);
+
+  if (!transferAmount || transferAmount <= 0) { return res.status(400).json({ error: 'Invalid quantity' }); }
+  
+  try {
+    // Begin Transaction
+    await pool.query('BEGIN')
+
+    // Obtain origin envelope
+    const fromEnvelope = await pool.query('SELECT * FROM envelopes WHERE id = $1', [from]);
+    if (fromEnvelope.rows.length === 0) { 
+      return res.status(400).json({ error: 'Origin envelope NOT FOUND' }); }
+
+    // Check origin envelope quantity
+    const fromBudget = parseFloat(fromEnvelope.rows[0].budget)
+    if (fromBudget < transferAmount) { return res.status(400).json({ error: 'Not enough budget' }) }
+  
+    // Obtain destiny envelope
+    const toEnvelope = await pool.query('SELECT * FROM envelopes WHERE id = $1', [to]);
+    if (toEnvelope.rows.length === 0) { return res.status(404).json({ error: 'Sobre de destino no encontrado' }); }
+  
+    // Update origin envelope
+    const newFromBudget = fromEnvelope.rows[0].budget - transferAmount;
+    await pool.query('UPDATE envelopes SET budget = $1 WHERE id = $2', [newFromBudget, from]);
+
+    // Update destiny envelope
+    const toBudget = parseFloat(toEnvelope.rows[0].budget);
+    const newToBudget = toBudget + transferAmount;
+    await pool.query('UPDATE envelopes SET budget = $1 WHERE id = $2', [newToBudget, to]);
+  
+    // Check transaction
+    await pool.query('COMMIT');
+    res.status(200).json({ message: 'Transaction completed succesfully!' });
+
+  } catch(err) {
+    // Revertir transaction
+    await pool.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { createEnvelope, getAllEnvelopes, getEnvelopeById, updateEnvelope, deleteEnvelope, transferBudget };
