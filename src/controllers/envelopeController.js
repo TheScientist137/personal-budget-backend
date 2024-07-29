@@ -1,4 +1,3 @@
-const { query } = require('express');
 const pool = require('../config/db');
 
 // POST - Create new envelope
@@ -16,9 +15,7 @@ const createEnvelope = async (req, res) => {
 
   res.status(201).json(result.rows[0]);
 
- } catch(err) {
-  res.status(500).json({ error: err.message });
- }
+ } catch(err) { res.status(500).json({ error: err.message }); }
 }
 
 // GET - Retrieve all envelopes
@@ -27,9 +24,7 @@ const getAllEnvelopes = async (req, res) => {
   const result = await pool.query('SELECT * FROM envelopes');
   res.status(200).json(result.rows);
 
- } catch(err) {
-  res.status(500).json({ error: err.message });
- }
+ } catch(err) { res.status(500).json({ error: err.message }); }
 }
 
 // GET - Retrieve a single envelope
@@ -43,9 +38,7 @@ const getEnvelopeById = async (req, res) => {
 
   res.status(200).json(result.rows[0]);
 
- } catch(err) {
-  res.status(500).json({ error: err.message });
- }
+ } catch(err) { res.status(500).json({ error: err.message }); }
 }
 
 // PUT - Update an existing envelope
@@ -75,15 +68,13 @@ const updateEnvelope = async (req, res) => {
   const updatedUserId = user_id !== undefined ? user_id : envelope.rows[0].user_id;
   
   // Update the envelope information
-  const result = await pool.query(
+  const result = await pool.query (
    'UPDATE envelopes SET title = $1, budget = $2, user_id = $3 WHERE id = $4 RETURNING *',
    [updatedTitle, newBudget, updatedUserId, id]);
 
    res.status(200).json(result.rows[0]);
 
- } catch(err) {
-  res.status(500).json({ error: err.message });
- }
+ } catch(err) { res.status(500).json({ error: err.message }); }
 }
 
 // DELETE - Delete an especific envelope
@@ -97,15 +88,13 @@ const deleteEnvelope = async (req, res) => {
   await pool.query('DELETE FROM envelopes WHERE id = $1', [id]);
   res.status(200).json({ message: 'Envelope deleted succesfully' });
 
- } catch(err) {
-  res.status(500).json({ error: err.message });
- }
+ } catch(err) { res.status(500).json({ error: err.message }); }
 }
 
 // POST - Transfer data from one budget to another
 const transferBudget = async (req, res) => {
   const { from, to } = req.params;
-  const { amount } = req.body;
+  const { amount, description } = req.body;
   
   const transferAmount = parseFloat(amount);
 
@@ -136,7 +125,7 @@ const transferBudget = async (req, res) => {
     const toBudget = parseFloat(toEnvelope.rows[0].budget);
     const newToBudget = toBudget + transferAmount;
     await pool.query('UPDATE envelopes SET budget = $1 WHERE id = $2', [newToBudget, to]);
-  
+
     // Check transaction
     await pool.query('COMMIT');
     res.status(200).json({ message: 'Transaction completed succesfully!' });

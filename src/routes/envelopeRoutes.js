@@ -10,16 +10,16 @@ const {
 const router = express.Router();
 
 // Route to create an envelope
-router.post('/', createEnvelope);
+router.post('/envelopes', createEnvelope);
 // Route to retrieve all envelopes
-router.get('/', getAllEnvelopes);
+router.get('/envelopes', getAllEnvelopes);
 // Route to retrieve an especific envelope
-router.get('/:id', getEnvelopeById);
+router.get('/envelopes/:id', getEnvelopeById);
 // Route to update an especific envelope
-router.put('/:id', updateEnvelope);
+router.put('/envelopes/:id', updateEnvelope);
 // Route to delete an especific envelope
-router.delete('/:id', deleteEnvelope);
+router.delete('/envelopes/:id', deleteEnvelope);
 // Route to transfer from one envelope to another
-router.post('/transfer/:from/:to', transferBudget);
+router.post('/envelopes/transfer/:from/:to', transferBudget);
 
 module.exports = router;
